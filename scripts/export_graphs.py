@@ -8,7 +8,6 @@ Outputs (each as both .png and .pdf):
     assets/graph_bulk_processing
     assets/graph_bulk_react
     assets/graph_planner_agent
-    assets/graph_planner_agent_with_network
     assets/graph_guided_retrieval_agent
 """
 
@@ -322,7 +321,6 @@ if __name__ == "__main__":
         "assets/graph_bulk_processing": build_bulk_processing_graph,
         "assets/graph_bulk_react": build_bulk_react_graph,
         "assets/graph_planner_agent": lambda: build_planner_agent_graph(False),
-        "assets/graph_planner_agent_with_network": lambda: build_planner_agent_graph(True),
         "assets/graph_guided_retrieval_agent": build_guided_retrieval_agent_graph,
     }
 
