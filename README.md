@@ -103,6 +103,8 @@ A lightweight agentic solver that decouples retrieval strategy from reasoning. T
 START -> strategy_classifier -> context_assembler -> [prober] -> analyst -> structured_output -> END
 ```
 
+![Guided Retrieval Agent Graph](assets/graph_guided_retrieval_agent.png)
+
 - **`strategy_classifier`** (LLM): picks one of `topology_only`, `ip_analysis`, `device_pair`, `live_connectivity`, `service_scan`.
 - **`context_assembler`** (deterministic): reads the lab files relevant to the chosen strategy.
 - **`prober`** (deterministic, conditional): executes live network commands (traceroute, ps aux, etc.) only for `live_connectivity` / `service_scan`.
