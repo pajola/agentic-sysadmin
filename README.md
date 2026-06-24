@@ -13,8 +13,8 @@ Official repository of **Toward Agentic SysAdmin: Rethinking System Administrati
 ### Setup Instructions
 
 ```bash
-git clone https://github.com/.git
-cd 
+git clone https://github.com/pajola/agentic-sysadmin.git
+cd agentic-sysadmin
 
 # Install python dependencies
 pip install -r requirements.txt
