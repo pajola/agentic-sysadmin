@@ -1,0 +1,17 @@
+kathara
+python-dotenv
+deepdiff
+langchain
+langchain-ollama
+langchain-openai
+langchain-aws
+boto3
+langgraph
+pydantic
+pandas
+matplotlib
+seaborn
+jinja2
+tiktoken
+setuptools<78
+streamlit>=1.30

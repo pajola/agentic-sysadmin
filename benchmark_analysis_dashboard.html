@@ -1,0 +1,798 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-mono, monospace); }
+h2.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.dash { padding: 1rem 0; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem; }
+.top-bar h1 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.upload-btn { display: inline-block; cursor: pointer; font-size: 12px; padding: 6px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-secondary); background: var(--color-background-secondary); transition: background 0.15s; }
+.upload-btn:hover { background: var(--color-background-tertiary); }
+#file-input { display: none; }
+.meta-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem; }
+.meta-chip { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.metric-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem; align-items: center; }
+.filters label { font-size: 12px; color: var(--color-text-secondary); }
+.filters select { font-size: 12px; padding: 4px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); cursor: pointer; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; letter-spacing: 0.04em; text-transform: none; }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.chart-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.chart-card.full { grid-column: 1 / -1; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.table-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1.5rem; }
+.table-card table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.table-card th { background: var(--color-background-secondary); font-weight: 500; font-size: 11px; color: var(--color-text-secondary); padding: 8px 12px; text-align: left; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; user-select: none; }
+.table-card th:hover { color: var(--color-text-primary); }
+.table-card th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.5; }
+.table-card th.sorted .sort-arrow { opacity: 1; }
+.table-card td { padding: 7px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+.table-card tr:last-child td { border-bottom: none; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 500; }
+.badge-best { background: #c0dd97; color: #27500a; }
+.badge-warn { background: #f5c4b3; color: #712b13; }
+.badge-info { background: #b3d4f5; color: #13426e; }
+.failed-banner { background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 12px; color: var(--color-text-warning); margin-bottom: 1.5rem; }
+.empty { text-align: center; padding: 3rem 1rem; color: var(--color-text-secondary); font-size: 13px; }
+.detail-notice { font-size: 11px; color: var(--color-text-secondary); padding: 8px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); margin-bottom: 1rem; }
+.acc-bar { display: inline-block; height: 14px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.heatmap-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+.heatmap { border-collapse: collapse; font-size: 11px; min-width: 100%; }
+.heatmap th { background: var(--color-background-secondary); font-weight: 500; font-size: 10px; color: var(--color-text-secondary); padding: 6px 10px; text-align: left; border: 0.5px solid var(--color-border-tertiary); white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+.heatmap th.col-header { text-align: center; max-width: 140px; white-space: normal; word-break: break-word; line-height: 1.3; }
+.heatmap th.row-header { position: sticky; left: 0; z-index: 2; background: var(--color-background-secondary); }
+.heatmap th.corner { position: sticky; left: 0; top: 0; z-index: 3; }
+.heatmap td { padding: 5px 8px; text-align: center; border: 0.5px solid var(--color-border-tertiary); font-weight: 500; font-size: 11px; min-width: 60px; transition: opacity 0.15s; cursor: default; }
+.heatmap td:hover { opacity: 0.8; }
+.heatmap td.na { background: var(--color-background-secondary); color: var(--color-text-secondary); font-weight: 400; font-style: italic; }
+@media (max-width: 600px) { .charts-grid { grid-template-columns: 1fr; } .chart-card.full { grid-column: 1; } }
+</style>
+
+<h2 class="sr-only">Benchmark analysis dashboard — compare model and solver accuracy across lab runs</h2>
+
+<div class="dash">
+  <div class="top-bar">
+    <h1>Benchmark analysis</h1>
+    <label class="upload-btn" for="file-input">Load JSON ↑<input type="file" id="file-input" accept=".json"></label>
+  </div>
+  <div id="app"><div class="empty">Load a <code>summary.json</code> or <code>partial_results.json</code> file to begin.<br><small>With partial_results.json you get per-lab and per-question breakdowns.</small><br><br><button onclick="loadDemo()" style="margin-top:10px;font-size:12px;padding:6px 14px;">Load demo data</button></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const COLORS = ['#378ADD','#1D9E75','#D85A30','#BA7517','#D4537E','#639922','#7F77DD','#888780'];
+const SOLVER_SHORT = { BulkProcessingSolverFromFiles:'Bulk', BulkReactSolverFromFiles:'BulkReAct', PlannerAgentSolver:'Planner', PlannerAgentSolverWithNetwork:'Planner+Net', StrategicAgentSolver:'Strategic' };
+const ERROR_TYPES = ['empty_response', 'json_parse_error', 'tool_loop_exceeded', 'kathara_error', 'other'];
+const ERROR_COLORS = { empty_response: '#D85A30', json_parse_error: '#BA7517', tool_loop_exceeded: '#7F77DD', kathara_error: '#D4537E', other: '#888780' };
+function fmtInt(n) { return (n || 0).toLocaleString(); }
+const MODEL_SHORT = { 'granite4:latest (chat-ollama)':'granite4', 'lfm2.5-thinking:latest (chat-ollama)':'lfm2.5-think', 'llama3.1:latest (chat-ollama)':'llama3.1', 'qwen3.5:9b (chat-ollama)':'qwen3.5:9b', 'rnj-1:8b (chat-ollama)':'rnj-1:8b' };
+
+let charts = {};
+let currentData = null;
+
+function destroyCharts() { Object.values(charts).forEach(c => c.destroy()); charts = {}; }
+
+document.getElementById('file-input').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { try { render(JSON.parse(ev.target.result)); } catch(ex) { alert('Invalid JSON: ' + ex.message); } };
+  r.readAsText(f);
+});
+
+function loadDemo() {
+  const demo = {"generated_at":"2026-04-07T17:33:54.087560+00:00","lab_paths":["labs/lab_medium-nat-web","labs/lab_small-internet-with-dns-and-web-server","labs/lab_alien","labs/lab_stairs","labs/lab_dns-load-balancer-with-rip","labs/lab_medium-ftp-dhcp-web"],"repetitions":10,"pair_summary":[{"model":"granite4:latest (chat-ollama)","solver":"BulkProcessingSolverFromFiles","n":359,"correct":72,"accuracy_pct":20.1,"mean_time_s":5.07,"std_time_s":8.2,"std_accuracy_pct":40.1,"mean_tokens_total":1850,"sum_tokens_total":664150,"errors":{"json_parse_error":12,"empty_response":3}},{"model":"granite4:latest (chat-ollama)","solver":"BulkReactSolverFromFiles","n":369,"correct":85,"accuracy_pct":23.0,"mean_time_s":6.65,"std_time_s":5.14,"std_accuracy_pct":42.2},{"model":"granite4:latest (chat-ollama)","solver":"PlannerAgentSolver","n":364,"correct":77,"accuracy_pct":21.2,"mean_time_s":9.73,"std_time_s":8.92,"std_accuracy_pct":40.9},{"model":"granite4:latest (chat-ollama)","solver":"PlannerAgentSolverWithNetwork","n":334,"correct":71,"accuracy_pct":21.3,"mean_time_s":11.96,"std_time_s":11.3,"std_accuracy_pct":41.0},{"model":"lfm2.5-thinking:latest (chat-ollama)","solver":"BulkProcessingSolverFromFiles","n":337,"correct":15,"accuracy_pct":4.5,"mean_time_s":9.64,"std_time_s":3.8,"std_accuracy_pct":20.7},{"model":"lfm2.5-thinking:latest (chat-ollama)","solver":"BulkReactSolverFromFiles","n":364,"correct":8,"accuracy_pct":2.2,"mean_time_s":9.99,"std_time_s":2.97,"std_accuracy_pct":14.7},{"model":"lfm2.5-thinking:latest (chat-ollama)","solver":"PlannerAgentSolver","n":368,"correct":8,"accuracy_pct":2.2,"mean_time_s":13.5,"std_time_s":5.15,"std_accuracy_pct":14.6},{"model":"lfm2.5-thinking:latest (chat-ollama)","solver":"PlannerAgentSolverWithNetwork","n":364,"correct":11,"accuracy_pct":3.0,"mean_time_s":14.64,"std_time_s":5.37,"std_accuracy_pct":17.1},{"model":"llama3.1:latest (chat-ollama)","solver":"BulkProcessingSolverFromFiles","n":370,"correct":138,"accuracy_pct":37.3,"mean_time_s":8.38,"std_time_s":7.31,"std_accuracy_pct":48.4},{"model":"llama3.1:latest (chat-ollama)","solver":"BulkReactSolverFromFiles","n":369,"correct":2,"accuracy_pct":0.5,"mean_time_s":6.11,"std_time_s":3.65,"std_accuracy_pct":7.4},{"model":"llama3.1:latest (chat-ollama)","solver":"PlannerAgentSolver","n":370,"correct":43,"accuracy_pct":11.6,"mean_time_s":5.19,"std_time_s":3.65,"std_accuracy_pct":32.1},{"model":"llama3.1:latest (chat-ollama)","solver":"PlannerAgentSolverWithNetwork","n":370,"correct":43,"accuracy_pct":11.6,"mean_time_s":5.04,"std_time_s":2.52,"std_accuracy_pct":32.1},{"model":"qwen3.5:9b (chat-ollama)","solver":"BulkProcessingSolverFromFiles","n":330,"correct":241,"accuracy_pct":73.0,"mean_time_s":63.97,"std_time_s":23.39,"std_accuracy_pct":44.4},{"model":"qwen3.5:9b (chat-ollama)","solver":"BulkReactSolverFromFiles","n":332,"correct":215,"accuracy_pct":64.8,"mean_time_s":82.21,"std_time_s":19.99,"std_accuracy_pct":47.8},{"model":"qwen3.5:9b (chat-ollama)","solver":"PlannerAgentSolver","n":361,"correct":300,"accuracy_pct":83.1,"mean_time_s":69.38,"std_time_s":41.15,"std_accuracy_pct":37.5},{"model":"qwen3.5:9b (chat-ollama)","solver":"PlannerAgentSolverWithNetwork","n":343,"correct":272,"accuracy_pct":79.3,"mean_time_s":81.72,"std_time_s":55.8,"std_accuracy_pct":40.6},{"model":"rnj-1:8b (chat-ollama)","solver":"BulkProcessingSolverFromFiles","n":337,"correct":129,"accuracy_pct":38.3,"mean_time_s":11.99,"std_time_s":18.69,"std_accuracy_pct":48.7},{"model":"rnj-1:8b (chat-ollama)","solver":"BulkReactSolverFromFiles","n":356,"correct":106,"accuracy_pct":29.8,"mean_time_s":18.39,"std_time_s":22.44,"std_accuracy_pct":45.8},{"model":"rnj-1:8b (chat-ollama)","solver":"PlannerAgentSolver","n":317,"correct":97,"accuracy_pct":30.6,"mean_time_s":39.87,"std_time_s":41.63,"std_accuracy_pct":46.2},{"model":"rnj-1:8b (chat-ollama)","solver":"PlannerAgentSolverWithNetwork","n":316,"correct":21,"accuracy_pct":6.6,"mean_time_s":47.53,"std_time_s":38.02,"std_accuracy_pct":24.9}],"failed_labs":[{"lab_name":"lab_stairs","lab_path":"labs/lab_stairs","error":"Docker Image `net-analysis` is not available neither on Docker Hub nor in local repository!"}]};
+  render(demo);
+}
+
+function mShort(m) { return MODEL_SHORT[m] || m.split('(')[0].trim(); }
+function sShort(s) { return SOLVER_SHORT[s] || s; }
+function qShort(q) { return q.length > 70 ? q.slice(0, 67) + '...' : q; }
+function labShort(l) { return l.replace(/^lab_/, ''); }
+
+/** Detect whether the loaded JSON is a partial_results or summary format */
+function detectFormat(data) {
+  if (data.results && Array.isArray(data.results) && data.results.length > 0 && data.results[0].question) {
+    return 'partial';
+  }
+  return 'summary';
+}
+
+/** Whether the loaded JSON carries the enriched log_analytics block produced
+ *  by scripts/build_dashboard_data.py. */
+function hasLogAnalytics(data) {
+  const la = data && data.log_analytics;
+  return !!(la && la.per_pair && Object.keys(la.per_pair).length);
+}
+
+/** Look up the log_analytics entry for a (model, solver) pair, tolerating
+ *  the small filename-vs-display formatting differences. */
+function getPairAnalytics(la, model, solver) {
+  if (!la || !la.per_pair) return null;
+  // Direct key first
+  const direct = la.per_pair[`${model}|${solver}`];
+  if (direct) return direct;
+  // Fall back: scan entries and match on solver + a fuzzy model comparison.
+  // build_dashboard_data sanitises the model name (":" → "_", ".", etc) so
+  // the extended key can differ from the summary one.
+  const normalize = s => (s || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const target = normalize(model);
+  for (const v of Object.values(la.per_pair)) {
+    if (v.solver === solver && normalize(v.model) === target) return v;
+  }
+  return null;
+}
+
+/** Derive pair_summary from raw results (same logic as analysis_engine.py) */
+function derivePairSummary(results) {
+  const stats = {};
+  for (const r of results) {
+    const key = r.model + '||' + r.solver;
+    if (!stats[key]) stats[key] = { model: r.model, solver: r.solver, times: [], correct: [], tokIn: [], tokOut: [], tokTot: [], errors: {}, n_all: 0 };
+    stats[key].n_all++;
+    if (r.error_type) {
+      stats[key].errors[r.error_type] = (stats[key].errors[r.error_type] || 0) + 1;
+    }
+    if (!r.successful) continue;
+    stats[key].times.push(r.solver_elapsed_time);
+    stats[key].correct.push(r.correct ? 1 : 0);
+    stats[key].tokIn.push(r.tokens_input || 0);
+    stats[key].tokOut.push(r.tokens_output || 0);
+    stats[key].tokTot.push(r.tokens_total || 0);
+  }
+  const meanOf = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+  const sumOf = arr => arr.reduce((a,b)=>a+b,0);
+  const summary = [];
+  for (const data of Object.values(stats)) {
+    const n = data.times.length;
+    if (n === 0 && data.n_all === 0) continue;
+    const meanTime = meanOf(data.times);
+    const sumCorrect = sumOf(data.correct);
+    const meanAcc = n ? sumCorrect / n : 0;
+    const stdTime = n > 1 ? Math.sqrt(data.times.reduce((a, t) => a + (t - meanTime) ** 2, 0) / (n - 1)) : 0;
+    const stdAcc = n > 1 ? Math.sqrt(data.correct.reduce((a, c) => a + (c - meanAcc) ** 2, 0) / (n - 1)) : 0;
+    summary.push({
+      model: data.model, solver: data.solver, n, n_all: data.n_all,
+      correct: sumCorrect,
+      accuracy_pct: n ? Math.round(sumCorrect / n * 1000) / 10 : 0,
+      mean_time_s: Math.round(meanTime * 100) / 100,
+      std_time_s: Math.round(stdTime * 100) / 100,
+      std_accuracy_pct: Math.round(stdAcc * 1000) / 10,
+      mean_tokens_input: Math.round(meanOf(data.tokIn)),
+      mean_tokens_output: Math.round(meanOf(data.tokOut)),
+      mean_tokens_total: Math.round(meanOf(data.tokTot)),
+      sum_tokens_total: sumOf(data.tokTot),
+      errors: data.errors,
+    });
+  }
+  return summary.sort((a, b) => a.model.localeCompare(b.model) || a.solver.localeCompare(b.solver));
+}
+
+/** Derive per-lab question counts from raw results */
+function deriveLabQuestions(results) {
+  const labQs = {};
+  for (const r of results) {
+    if (!labQs[r.lab_name]) labQs[r.lab_name] = new Set();
+    labQs[r.lab_name].add(r.question);
+  }
+  const out = {};
+  for (const [lab, qs] of Object.entries(labQs)) {
+    out[lab] = [...qs].sort();
+  }
+  return out;
+}
+
+function render(data) {
+  destroyCharts();
+  currentData = data;
+
+  const format = detectFormat(data);
+  const hasDetail = format === 'partial';
+  const rawResults = hasDetail ? data.results : null;
+
+  // Derive or use existing pair_summary
+  const pairs = hasDetail ? derivePairSummary(rawResults) : data.pair_summary;
+  const models = [...new Set(pairs.map(p => p.model))];
+  const solvers = [...new Set(pairs.map(p => p.solver))];
+  const totalRuns = pairs.reduce((a, b) => a + b.n, 0);
+  const totalCorrect = pairs.reduce((a, b) => a + b.correct, 0);
+  const best = pairs.reduce((a, b) => a.accuracy_pct > b.accuracy_pct ? a : b);
+  const worst = pairs.reduce((a, b) => a.accuracy_pct < b.accuracy_pct ? a : b);
+  const failed = data.failed_labs || [];
+  const totalTokens = pairs.reduce((a, b) => a + (b.sum_tokens_total || 0), 0);
+  const totalErrors = pairs.reduce((a, p) => a + Object.values(p.errors || {}).reduce((x,y)=>x+y, 0), 0);
+  const hasTokens = totalTokens > 0;
+
+  // Lab info
+  const labPaths = data.lab_paths || [];
+  const labNames = labPaths.map(p => p.split('/').pop());
+  const labQuestions = hasDetail ? deriveLabQuestions(rawResults) : null;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="meta-bar">
+      <span class="meta-chip">Generated: ${data.generated_at.replace('T',' ').slice(0,19)} UTC</span>
+      <span class="meta-chip">Labs: ${labPaths.length}</span>
+      <span class="meta-chip">Repetitions: ${data.repetitions}</span>
+      <span class="meta-chip">Models: ${models.length}</span>
+      <span class="meta-chip">Solvers: ${solvers.length}</span>
+      <span class="meta-chip">${hasDetail ? '✓ Detail mode (partial_results)' : 'Summary mode only'}</span>
+    </div>
+    ${labQuestions ? `<div class="meta-bar" id="labChips">${Object.entries(labQuestions).sort((a,b)=>a[0].localeCompare(b[0])).map(([lab, qs]) =>
+      `<span class="meta-chip" title="${qs.map(q=>qShort(q)).join('\n')}">${labShort(lab)}: ${qs.length} questions</span>`
+    ).join('')}</div>` : ''}
+    ${failed.length ? `<div class="failed-banner">⚠ ${failed.length} failed lab(s): ${failed.map(f=>`<strong>${f.lab_name}</strong>`).join(', ')}</div>` : ''}
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">total runs</div><div class="metric-value">${totalRuns.toLocaleString()}</div></div>
+      <div class="metric"><div class="metric-label">total correct</div><div class="metric-value">${totalCorrect.toLocaleString()}</div></div>
+      <div class="metric"><div class="metric-label">overall accuracy</div><div class="metric-value">${((totalCorrect/totalRuns)*100).toFixed(1)}%</div></div>
+      ${hasTokens ? `<div class="metric"><div class="metric-label">total tokens</div><div class="metric-value">${totalTokens >= 1e6 ? (totalTokens/1e6).toFixed(1) + 'M' : (totalTokens/1e3).toFixed(0) + 'k'}</div><div class="metric-sub">across all runs</div></div>` : ''}
+      ${totalErrors ? `<div class="metric"><div class="metric-label">total errors</div><div class="metric-value">${fmtInt(totalErrors)}</div><div class="metric-sub">non-success runs</div></div>` : ''}
+      <div class="metric"><div class="metric-label">best pair</div><div class="metric-value">${best.accuracy_pct.toFixed(1)}%</div><div class="metric-sub">${mShort(best.model)} + ${sShort(best.solver)}</div></div>
+      <div class="metric"><div class="metric-label">worst pair</div><div class="metric-value">${worst.accuracy_pct.toFixed(1)}%</div><div class="metric-sub">${mShort(worst.model)} + ${sShort(worst.solver)}</div></div>
+    </div>
+    <div class="filters">
+      <label>Filter model:</label>
+      <select id="fModel"><option value="">All</option>${models.map(m=>`<option>${m}</option>`).join('')}</select>
+      <label>Filter solver:</label>
+      <select id="fSolver"><option value="">All</option>${solvers.map(s=>`<option>${s}</option>`).join('')}</select>
+      ${hasDetail ? `<label>Filter lab:</label>
+      <select id="fLab"><option value="">All labs</option>${Object.keys(labQuestions).sort().map(l=>`<option>${l}</option>`).join('')}</select>` : ''}
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="section-title">Accuracy (%) — all model × solver pairs</div>
+        <div class="legend" id="leg1"></div>
+        <div style="position:relative;width:100%;height:260px;"><canvas id="c1">Accuracy comparison.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title">${hasTokens ? 'Mean tokens / run — by pair' : 'Mean response time (s) — by model'}</div>
+        <div class="legend" id="leg2"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="c2">Mean tokens per pair.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title">${hasTokens ? 'Tokens vs accuracy — all pairs' : 'Speed vs accuracy — all pairs'}</div>
+        <div class="legend" id="leg3"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="c3">Tokens versus accuracy scatter.</canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="section-title">Run coverage — correct vs incorrect</div>
+        <div style="position:relative;width:100%;height:200px;"><canvas id="c4">Run coverage.</canvas></div>
+      </div>
+      ${totalErrors ? `<div class="chart-card full">
+        <div class="section-title">Error breakdown by pair (${ERROR_TYPES.join(', ')})</div>
+        <div class="legend" id="legErr"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="cErr">Errors per pair.</canvas></div>
+      </div>` : ''}
+      ${hasLogAnalytics(data) ? `
+      <div class="chart-card full">
+        <div class="section-title">Tool hallucination by pair — real / text-encoded / invented (planner solvers only)</div>
+        <div class="legend" id="legHallu"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="cHallu">Hallucination per pair.</canvas></div>
+        <div class="detail-notice" id="halluTopNotice" style="margin-top:10px;"></div>
+      </div>
+      <div class="chart-card full">
+        <div class="section-title">Duplicate tool calls by pair — dup_% (bar) and worst single-call repeats (label)</div>
+        <div class="legend" id="legDup"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="cDup">Duplicate calls per pair.</canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="section-title">Empty reasoning by pair — % of intermediate llm_output steps with empty content</div>
+        <div class="legend" id="legEmpty"></div>
+        <div style="position:relative;width:100%;height:240px;"><canvas id="cEmpty">Empty reasoning per pair.</canvas></div>
+      </div>
+      ` : ''}
+    </div>
+    <div class="section-title">Full results table</div>
+    <div class="table-card"><table id="resultsTable">
+      <thead><tr><th>Model</th><th>Solver</th><th>Runs (n)</th><th>Correct</th><th title="Top: accuracy over successful runs. Bottom: accuracy over all runs incl. failures.">Accuracy<br><small style="font-weight:400;opacity:0.6">ok / all</small></th>${hasTokens ? '<th>Avg tok/run</th><th>Total tok</th>' : '<th>Mean time (s)</th>'}<th>Errors</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+    ${hasDetail ? `
+    <div class="section-title" id="heatmapTitle">Accuracy heatmap — model+solver vs lab</div>
+    <div id="heatmapNotice" class="detail-notice">Showing accuracy per model+solver across labs. Big number = accuracy over <b>successful</b> runs (matches the table); small "all" number = accuracy over <b>all</b> runs incl. failures. Select a lab to see per-question breakdown.</div>
+    <div class="heatmap-wrap"><table class="heatmap" id="heatmapTable"></table></div>
+    ` : '<div class="detail-notice">Load a <code>partial_results.json</code> to see heatmap breakdown.</div>'}
+  `;
+
+  // Wire up filter listeners
+  document.getElementById('fModel').addEventListener('change', () => onFilterChange(data, pairs, hasDetail, rawResults));
+  document.getElementById('fSolver').addEventListener('change', () => onFilterChange(data, pairs, hasDetail, rawResults));
+  if (hasDetail) {
+    document.getElementById('fLab').addEventListener('change', () => onFilterChange(data, pairs, hasDetail, rawResults));
+  }
+
+  buildCharts(data, pairs, models, solvers);
+  if (hasLogAnalytics(data)) buildLogAnalyticsCharts(data, pairs);
+  updateTable(pairs);
+  if (hasDetail) updateHeatmap(rawResults);
+}
+
+function onFilterChange(data, pairs, hasDetail, rawResults) {
+  if (hasDetail) {
+    const fLab = document.getElementById('fLab').value;
+    const filtered = fLab ? rawResults.filter(r => r.lab_name === fLab) : rawResults;
+    const recomputedPairs = derivePairSummary(filtered);
+    updateTable(recomputedPairs);
+    updateHeatmap(rawResults);
+  } else {
+    updateTable(pairs || data.pair_summary);
+  }
+}
+
+function buildCharts(data, pairs, models, solvers) {
+  const hasTokens = pairs.some(p => (p.sum_tokens_total || 0) > 0);
+  const solverColors = Object.fromEntries(solvers.map((s, i) => [s, COLORS[i % COLORS.length]]));
+  const datasets1 = solvers.map((s, i) => ({
+    label: sShort(s),
+    data: models.map(m => { const p = pairs.find(p => p.model===m && p.solver===s); return p ? parseFloat(p.accuracy_pct.toFixed(1)) : null; }),
+    backgroundColor: COLORS[i % COLORS.length] + 'cc',
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: 1,
+    borderRadius: 3
+  }));
+  const leg1 = document.getElementById('leg1');
+  solvers.forEach((s, i) => { leg1.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${COLORS[i%COLORS.length]}"></span>${sShort(s)}</span>`; });
+  charts.c1 = new Chart(document.getElementById('c1'), {
+    type: 'bar',
+    data: { labels: models.map(mShort), datasets: datasets1 },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min:0, max:100, ticks: { callback: v => v+'%', color:'#888', font:{size:10} }, grid: { color:'rgba(128,128,128,0.12)' } }, x: { ticks: { color:'#888', font:{size:10} }, grid: { display:false } } } }
+  });
+
+  // c2: mean tokens/run per (model, solver) when tokens are available; fall
+  // back to mean time per model otherwise.
+  const leg2 = document.getElementById('leg2');
+  if (hasTokens) {
+    const datasets2 = solvers.map((s, i) => ({
+      label: sShort(s),
+      data: models.map(m => { const p = pairs.find(p => p.model===m && p.solver===s); return p ? (p.mean_tokens_total || 0) : null; }),
+      backgroundColor: COLORS[i%COLORS.length]+'cc',
+      borderColor: COLORS[i%COLORS.length],
+      borderWidth: 1,
+      borderRadius: 3,
+    }));
+    solvers.forEach((s, i) => { leg2.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${COLORS[i%COLORS.length]}"></span>${sShort(s)}</span>`; });
+    charts.c2 = new Chart(document.getElementById('c2'), {
+      type: 'bar',
+      data: { labels: models.map(mShort), datasets: datasets2 },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`${i.dataset.label}: ${fmtInt(i.raw)} tok/run`}}}, scales:{ y:{ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'k':v,color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.12)'}}, x:{ticks:{color:'#888',font:{size:10}},grid:{display:false}} } }
+    });
+  } else {
+    const modelTimeData = models.map(m => {
+      const ps = pairs.filter(p => p.model === m);
+      return parseFloat((ps.reduce((a,b)=>a+b.mean_time_s,0)/ps.length).toFixed(2));
+    });
+    models.forEach((m, i) => { leg2.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${COLORS[i%COLORS.length]}"></span>${mShort(m)}</span>`; });
+    charts.c2 = new Chart(document.getElementById('c2'), {
+      type: 'bar',
+      data: { labels: models.map(mShort), datasets: [{ label: 'Avg time (s)', data: modelTimeData, backgroundColor: models.map((_,i)=>COLORS[i%COLORS.length]+'bb'), borderColor: models.map((_,i)=>COLORS[i%COLORS.length]), borderWidth:1, borderRadius:3 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ticks:{callback:v=>v+'s',color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.12)'}}, x:{ticks:{color:'#888',font:{size:10}},grid:{display:false}} } }
+    });
+  }
+
+  // c3: tokens vs accuracy scatter when tokens are available, else speed.
+  const xField = hasTokens ? 'mean_tokens_total' : 'mean_time_s';
+  const xLabel = hasTokens ? 'Mean tokens / run' : 'Mean time (s)';
+  const scatterDatasets = models.map((m, i) => ({
+    label: mShort(m),
+    data: pairs.filter(p=>p.model===m).map(p=>({ x: parseFloat((p[xField] || 0).toFixed ? p[xField].toFixed(2) : p[xField]), y: parseFloat(p.accuracy_pct.toFixed(1)), r: Math.max(5, p.n/25), solver: sShort(p.solver) })),
+    backgroundColor: COLORS[i%COLORS.length]+'99',
+    borderColor: COLORS[i%COLORS.length],
+    borderWidth: 1.5
+  }));
+  const leg3 = document.getElementById('leg3');
+  models.forEach((m, i) => { leg3.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${COLORS[i%COLORS.length]}"></span>${mShort(m)}</span>`; });
+  charts.c3 = new Chart(document.getElementById('c3'), {
+    type: 'bubble',
+    data: { datasets: scatterDatasets },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`${i.dataset.label}/${i.raw.solver}: ${i.raw.y}% @ ${hasTokens ? fmtInt(i.raw.x)+' tok' : i.raw.x+'s'}`}}}, scales:{ y:{min:-5,max:105,ticks:{callback:v=>v+'%',color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.12)'},title:{display:true,text:'Accuracy',color:'#888',font:{size:10}}}, x:{ticks:{color:'#888',font:{size:10},callback:v=>hasTokens && v>=1000?(v/1000).toFixed(1)+'k':v},grid:{color:'rgba(128,128,128,0.12)'},title:{display:true,text:xLabel,color:'#888',font:{size:10}}} } }
+  });
+
+  const labels4 = pairs.map(p => mShort(p.model)+'\n'+sShort(p.solver));
+  charts.c4 = new Chart(document.getElementById('c4'), {
+    type: 'bar',
+    data: { labels: labels4, datasets: [
+      { label:'Correct', data: pairs.map(p=>p.correct), backgroundColor:'#1D9E7599', borderColor:'#1D9E75', borderWidth:1, borderRadius:2 },
+      { label:'Incorrect', data: pairs.map(p=>p.n-p.correct), backgroundColor:'#D85A3099', borderColor:'#D85A30', borderWidth:1 }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{stacked:true,ticks:{color:'#888',font:{size:8},maxRotation:55,autoSkip:false},grid:{display:false}}, y:{stacked:true,ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.12)'}} } }
+  });
+
+  // Error breakdown — stacked bar of error_type per (model, solver).
+  const cErrEl = document.getElementById('cErr');
+  if (cErrEl) {
+    const errLabels = pairs.map(p => mShort(p.model)+'\n'+sShort(p.solver));
+    const errDatasets = ERROR_TYPES.map(et => ({
+      label: et,
+      data: pairs.map(p => (p.errors && p.errors[et]) || 0),
+      backgroundColor: ERROR_COLORS[et] + 'cc',
+      borderColor: ERROR_COLORS[et],
+      borderWidth: 1,
+    }));
+    const legErr = document.getElementById('legErr');
+    ERROR_TYPES.forEach(et => { legErr.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${ERROR_COLORS[et]}"></span>${et}</span>`; });
+    charts.cErr = new Chart(cErrEl, {
+      type: 'bar',
+      data: { labels: errLabels, datasets: errDatasets },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`${i.dataset.label}: ${i.raw}`}}}, scales:{ x:{stacked:true,ticks:{color:'#888',font:{size:8},maxRotation:55,autoSkip:false},grid:{display:false}}, y:{stacked:true,ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.12)'}} } }
+    });
+  }
+}
+
+/** Render the three log-analytics charts: hallucination / duplicates / empty
+ *  reasoning. All three share the same X axis: one tick per (model, solver) pair
+ *  that appears in `pairs`, in the same order as the rest of the dashboard. */
+function buildLogAnalyticsCharts(data, pairs) {
+  const la = data.log_analytics;
+  const labels = pairs.map(p => mShort(p.model)+'\n'+sShort(p.solver));
+
+  // --- Hallucination ---
+  // Stacked bar of real tool calls, text-encoded tool calls, and total invented.
+  // "Total invented" double-counts emissions already in real/text — that's fine
+  // because the goal is to make the "did the model invent tools?" signal stand
+  // out next to the legitimate volume.
+  const hallu = pairs.map(p => {
+    const a = getPairAnalytics(la, p.model, p.solver);
+    if (!a || !a.hallucination) return { real: 0, text: 0, invented: 0, turns: 0 };
+    const h = a.hallucination;
+    return {
+      real: h.real_tool_calls || 0,
+      text: h.text_tool_call_emissions || 0,
+      invented: h.total_invented_count || 0,
+      turns: h.planner_turns || 0,
+    };
+  });
+  const halluColors = { real: '#1D9E75', text: '#BA7517', invented: '#D85A30' };
+  const halluDatasets = [
+    { label: 'real_tool_calls', data: hallu.map(x=>x.real), backgroundColor: halluColors.real+'cc', borderColor: halluColors.real, borderWidth:1 },
+    { label: 'text_tool_call_emissions', data: hallu.map(x=>x.text), backgroundColor: halluColors.text+'cc', borderColor: halluColors.text, borderWidth:1 },
+    { label: 'invented (total)', data: hallu.map(x=>x.invented), backgroundColor: halluColors.invented+'cc', borderColor: halluColors.invented, borderWidth:1 },
+  ];
+  const legHallu = document.getElementById('legHallu');
+  legHallu.innerHTML = '';
+  for (const ds of halluDatasets) {
+    legHallu.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${ds.borderColor}"></span>${ds.label}</span>`;
+  }
+  charts.cHallu = new Chart(document.getElementById('cHallu'), {
+    type: 'bar',
+    data: { labels, datasets: halluDatasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:i=>{
+          const h = hallu[i.dataIndex];
+          return `${i.dataset.label}: ${i.raw} (planner_turns=${h.turns})`;
+        }}}
+      },
+      scales:{
+        x:{stacked:true, ticks:{color:'#888',font:{size:8},maxRotation:55,autoSkip:false}, grid:{display:false}},
+        y:{stacked:true, ticks:{color:'#888',font:{size:10}}, grid:{color:'rgba(128,128,128,0.12)'}}
+      }
+    }
+  });
+
+  // Collect the global top invented tool names across all pairs.
+  const invCounts = {};
+  for (const v of Object.values(la.per_pair)) {
+    const top = (v.hallucination && v.hallucination.top_invented_names) || [];
+    for (const entry of top) {
+      // entry is [name, count] in the Counter.most_common() shape
+      const name = entry[0], count = entry[1];
+      invCounts[name] = (invCounts[name] || 0) + count;
+    }
+  }
+  const topInv = Object.entries(invCounts).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+  const halluNotice = document.getElementById('halluTopNotice');
+  if (halluNotice) {
+    halluNotice.innerHTML = topInv.length
+      ? 'Top invented tool names across all pairs: ' + topInv.map(([n,c]) => `<code>${n}</code> (${c})`).join(', ')
+      : 'No invented tool names recorded.';
+  }
+
+  // --- Duplicates ---
+  // Single bar per pair: dup_% (0..100). Worst single-call repeat surfaced via
+  // a chart-level data-label tooltip and per-bar label.
+  const dup = pairs.map(p => {
+    const a = getPairAnalytics(la, p.model, p.solver);
+    if (!a || !a.duplicates) return { pct: 0, worst: 0, total: 0, dupes: 0 };
+    const d = a.duplicates;
+    return {
+      pct: +( (d.dup_ratio || 0) * 100 ).toFixed(1),
+      worst: d.worst_single_repeat_in_a_run || 0,
+      total: d.total_calls || 0,
+      dupes: d.duplicate_calls || 0,
+    };
+  });
+  const legDup = document.getElementById('legDup');
+  legDup.innerHTML = `<span class="legend-item"><span class="legend-swatch" style="background:#7F77DD"></span>dup_% per pair</span>`
+    + `<span class="legend-item" style="margin-left:14px;">Numbers on top: worst single-call repeat in a single run</span>`;
+  // Custom plugin to draw the "worst" value on top of each bar.
+  const worstLabelPlugin = {
+    id: 'worstLabel',
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      const ds = chart.data.datasets[0];
+      const meta = chart.getDatasetMeta(0);
+      ctx.save();
+      ctx.font = '10px var(--font-mono, monospace)';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      meta.data.forEach((bar, i) => {
+        const w = dup[i] && dup[i].worst;
+        if (w && w > 1) ctx.fillText(`×${w}`, bar.x, bar.y - 2);
+      });
+      ctx.restore();
+    }
+  };
+  charts.cDup = new Chart(document.getElementById('cDup'), {
+    type: 'bar',
+    data: { labels, datasets: [{
+      label: 'dup_%',
+      data: dup.map(x=>x.pct),
+      backgroundColor: '#7F77DDcc',
+      borderColor: '#7F77DD',
+      borderWidth: 1,
+      borderRadius: 2,
+    }]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:i=>{
+          const d = dup[i.dataIndex];
+          return `dup_%: ${d.pct}%  (${d.dupes}/${d.total} dup/total, worst x${d.worst})`;
+        }}}
+      },
+      scales:{
+        x:{ticks:{color:'#888',font:{size:8},maxRotation:55,autoSkip:false}, grid:{display:false}},
+        y:{min:0, max:100, ticks:{callback:v=>v+'%', color:'#888', font:{size:10}}, grid:{color:'rgba(128,128,128,0.12)'}}
+      }
+    },
+    plugins: [worstLabelPlugin],
+  });
+
+  // --- Empty reasoning ---
+  // Stacked bar of % empty per intermediate node (reason / act / planner /
+  // validation). Each pair only contributes to the nodes its solver uses, so
+  // most pairs will show a single coloured segment.
+  const nodes = ['reason', 'act', 'planner', 'validation'];
+  const nodeColors = { reason: '#378ADD', act: '#1D9E75', planner: '#D4537E', validation: '#BA7517' };
+  const emptyPerNode = {};
+  for (const n of nodes) emptyPerNode[n] = [];
+  const emptyTooltipData = pairs.map(p => {
+    const a = getPairAnalytics(la, p.model, p.solver);
+    const byNode = (a && a.empty_reasoning && a.empty_reasoning.by_node) || {};
+    const result = { byNode };
+    for (const n of nodes) {
+      const b = byNode[n];
+      const pct = b && b.total > 0 ? +(b.empty / b.total * 100).toFixed(1) : 0;
+      emptyPerNode[n].push(pct);
+    }
+    return result;
+  });
+  const emptyDatasets = nodes.map(n => ({
+    label: n,
+    data: emptyPerNode[n],
+    backgroundColor: nodeColors[n] + 'cc',
+    borderColor: nodeColors[n],
+    borderWidth: 1,
+  }));
+  const legEmpty = document.getElementById('legEmpty');
+  legEmpty.innerHTML = '';
+  for (const n of nodes) {
+    legEmpty.innerHTML += `<span class="legend-item"><span class="legend-swatch" style="background:${nodeColors[n]}"></span>${n}</span>`;
+  }
+  charts.cEmpty = new Chart(document.getElementById('cEmpty'), {
+    type: 'bar',
+    data: { labels, datasets: emptyDatasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:i=>{
+          const node = i.dataset.label;
+          const byNode = emptyTooltipData[i.dataIndex].byNode || {};
+          const b = byNode[node];
+          if (!b || !b.total) return `${node}: n/a`;
+          return `${node}: ${i.raw}%  (${b.empty}/${b.total} empty/total)`;
+        }}}
+      },
+      scales:{
+        x:{ticks:{color:'#888',font:{size:8},maxRotation:55,autoSkip:false}, grid:{display:false}},
+        y:{min:0, max:100, ticks:{callback:v=>v+'%', color:'#888', font:{size:10}}, grid:{color:'rgba(128,128,128,0.12)'}}
+      }
+    }
+  });
+}
+
+function updateTable(pairs) {
+  const fModel = document.getElementById('fModel').value;
+  const fSolver = document.getElementById('fSolver').value;
+  const filtered = pairs.filter(p => (!fModel || p.model===fModel) && (!fSolver || p.solver===fSolver));
+  const bestAcc = Math.max(...filtered.map(p=>p.accuracy_pct));
+  const worstAcc = Math.min(...filtered.map(p=>p.accuracy_pct));
+  const hasTokens = filtered.some(p => (p.sum_tokens_total || 0) > 0);
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  filtered.sort((a,b) => b.accuracy_pct - a.accuracy_pct)
+    .forEach(p => {
+      const badge = p.accuracy_pct === bestAcc ? '<span class="badge badge-best">best</span>' : p.accuracy_pct === worstAcc ? '<span class="badge badge-warn">worst</span>' : '';
+      const errSummary = p.errors && Object.keys(p.errors).length
+        ? Object.entries(p.errors).map(([k,v]) => `${k.slice(0,3)}=${v}`).join(' ')
+        : '—';
+      const tokenCells = hasTokens
+        ? `<td title="in=${fmtInt(p.mean_tokens_input)}, out=${fmtInt(p.mean_tokens_output)}">${fmtInt(p.mean_tokens_total)}</td><td>${p.sum_tokens_total >= 1e6 ? (p.sum_tokens_total/1e6).toFixed(2)+'M' : (p.sum_tokens_total/1e3).toFixed(1)+'k'}</td>`
+        : `<td>${p.mean_time_s.toFixed(2)}</td>`;
+      // Two accuracy notions: over successful runs (p.accuracy_pct, denom=n)
+      // and end-to-end over all runs incl. failures (denom=n_all). Show both
+      // when they differ, so the table matches the heatmap.
+      const nAll = p.n_all || p.n;
+      const accAll = nAll ? Math.round(p.correct / nAll * 1000) / 10 : 0;
+      const accCell = (nAll !== p.n)
+        ? `${p.accuracy_pct.toFixed(1)}% ${badge}<div style="font-size:10px;color:var(--color-text-secondary)" title="${p.correct}/${nAll} over all runs incl. ${nAll - p.n} failures">${accAll.toFixed(1)}% all</div>`
+        : `${p.accuracy_pct.toFixed(1)}% ${badge}`;
+      tbody.innerHTML += `<tr>
+        <td>${mShort(p.model)}</td>
+        <td>${sShort(p.solver)}</td>
+        <td>${p.n}${p.n_all && p.n_all !== p.n ? '/'+p.n_all : ''}</td>
+        <td>${p.correct}</td>
+        <td title="${p.accuracy_pct.toFixed(1)}% over ${p.n} successful runs">${accCell}</td>
+        ${tokenCells}
+        <td style="font-size:10px;color:var(--color-text-secondary)">${errSummary}</td>
+      </tr>`;
+    });
+}
+
+/** Interpolate color for heatmap cell: red (0%) -> yellow (50%) -> green (100%) */
+function accColor(pct) {
+  // 0% = #D85A30 (red), 50% = #BA7517 (amber), 100% = #1D9E75 (green)
+  let r, g, b;
+  if (pct <= 50) {
+    const t = pct / 50;
+    r = Math.round(216 + (186 - 216) * t);
+    g = Math.round(90 + (117 - 90) * t);
+    b = Math.round(48 + (23 - 48) * t);
+  } else {
+    const t = (pct - 50) / 50;
+    r = Math.round(186 + (29 - 186) * t);
+    g = Math.round(117 + (158 - 117) * t);
+    b = Math.round(23 + (117 - 23) * t);
+  }
+  return `rgb(${r},${g},${b})`;
+}
+
+function accTextColor(pct) {
+  // White text on dark backgrounds (low and high), dark on mid
+  return (pct < 25 || pct > 75) ? '#fff' : '#1a1a1a';
+}
+
+function updateHeatmap(allResults) {
+  const fModel = document.getElementById('fModel').value;
+  const fSolver = document.getElementById('fSolver').value;
+  const fLab = document.getElementById('fLab') ? document.getElementById('fLab').value : '';
+
+  const title = document.getElementById('heatmapTitle');
+  const notice = document.getElementById('heatmapNotice');
+  const table = document.getElementById('heatmapTable');
+  if (!table) return;
+
+  // Filter results by model/solver
+  let filtered = allResults;
+  if (fModel) filtered = filtered.filter(r => r.model === fModel);
+  if (fSolver) filtered = filtered.filter(r => r.solver === fSolver);
+
+  if (fLab) {
+    // LAB SELECTED: rows = model+solver, columns = questions in that lab
+    filtered = filtered.filter(r => r.lab_name === fLab);
+    if (title) title.textContent = `Accuracy heatmap — ${labShort(fLab)}: model+solver vs question`;
+    if (notice) notice.innerHTML = `Per-question accuracy for lab "${labShort(fLab)}". Big number = accuracy over <b>successful</b> runs; small "all" number = over <b>all</b> runs incl. failures. Hover a cell for raw counts.`;
+
+    // Get unique questions and row keys
+    const questions = [...new Set(filtered.map(r => r.question))].sort();
+    const rowKeys = [...new Set(filtered.map(r => r.model + '||' + r.solver))].sort();
+
+    // Aggregate: { rowKey -> { question -> { correct, ok, total } } }
+    // ok = successful runs (denom for "accuracy over successful")
+    // total = all runs incl. failures (denom for "accuracy over all")
+    const data = {};
+    for (const r of filtered) {
+      const rk = r.model + '||' + r.solver;
+      if (!data[rk]) data[rk] = {};
+      if (!data[rk][r.question]) data[rk][r.question] = { correct: 0, ok: 0, total: 0 };
+      data[rk][r.question].total++;
+      if (isSuccessful(r)) data[rk][r.question].ok++;
+      if (r.correct) data[rk][r.question].correct++;
+    }
+
+    // Build table
+    let html = '<thead><tr><th class="corner">Model + Solver</th>';
+    for (const q of questions) {
+      html += `<th class="col-header" title="${q}">${qShort(q)}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    for (const rk of rowKeys) {
+      const [model, solver] = rk.split('||');
+      html += `<tr><th class="row-header">${mShort(model)} + ${sShort(solver)}</th>`;
+      for (const q of questions) {
+        html += heatCell(data[rk] && data[rk][q]);
+      }
+      html += '</tr>';
+    }
+    html += '</tbody>';
+    table.innerHTML = html;
+
+  } else {
+    // NO LAB SELECTED: rows = model+solver, columns = labs
+    if (title) title.textContent = 'Accuracy heatmap — model+solver vs lab';
+    if (notice) notice.innerHTML = 'Showing accuracy per model+solver across labs. Big number = accuracy over <b>successful</b> runs (matches the table); small "all" number = over <b>all</b> runs incl. failures. Select a lab to see per-question breakdown.';
+
+    const labs = [...new Set(filtered.map(r => r.lab_name))].sort();
+    const rowKeys = [...new Set(filtered.map(r => r.model + '||' + r.solver))].sort();
+
+    // Aggregate: { rowKey -> { lab -> { correct, ok, total } } }
+    const data = {};
+    for (const r of filtered) {
+      const rk = r.model + '||' + r.solver;
+      if (!data[rk]) data[rk] = {};
+      if (!data[rk][r.lab_name]) data[rk][r.lab_name] = { correct: 0, ok: 0, total: 0 };
+      data[rk][r.lab_name].total++;
+      if (isSuccessful(r)) data[rk][r.lab_name].ok++;
+      if (r.correct) data[rk][r.lab_name].correct++;
+    }
+
+    let html = '<thead><tr><th class="corner">Model + Solver</th>';
+    for (const lab of labs) {
+      html += `<th class="col-header">${labShort(lab)}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    for (const rk of rowKeys) {
+      const [model, solver] = rk.split('||');
+      html += `<tr><th class="row-header">${mShort(model)} + ${sShort(solver)}</th>`;
+      for (const lab of labs) {
+        html += heatCell(data[rk] && data[rk][lab]);
+      }
+      html += '</tr>';
+    }
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+}
+
+/** Whether a raw result row is a successful run. Falls back to "no error_type"
+ *  for older logs that predate the `successful` field. */
+function isSuccessful(r) {
+  if (typeof r.successful === 'boolean') return r.successful;
+  return !r.error_type;
+}
+
+/** Render one heatmap cell showing BOTH accuracy notions:
+ *  - main value + colour = accuracy over successful runs (correct/ok)
+ *  - sub value = accuracy over all runs incl. failures (correct/total)
+ *  The sub value only appears when some runs failed (total !== ok). */
+function heatCell(cell) {
+  if (!cell || cell.total === 0) return '<td class="na">—</td>';
+  const pctOk = cell.ok > 0 ? cell.correct / cell.ok * 100 : 0;
+  const pctAll = cell.correct / cell.total * 100;
+  const bg = cell.ok > 0 ? accColor(pctOk) : 'var(--color-background-secondary)';
+  const fg = cell.ok > 0 ? accTextColor(pctOk) : 'var(--color-text-secondary)';
+  const failed = cell.total - cell.ok;
+  const sub = failed > 0
+    ? `<div style="font-size:9px;opacity:0.85">${pctAll.toFixed(0)}% all</div>`
+    : '';
+  const title = `${cell.correct}/${cell.ok} over successful` +
+    (failed > 0 ? ` · ${cell.correct}/${cell.total} over all (${failed} failed)` : '');
+  const main = cell.ok > 0 ? `${pctOk.toFixed(0)}%` : 'n/a';
+  return `<td style="background:${bg};color:${fg}" title="${title}">${main}${sub}</td>`;
+}
+
+setTimeout(() => loadDemo(), 200);
+</script>
