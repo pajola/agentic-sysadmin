@@ -45,9 +45,9 @@ A simple two-step pipeline: all lab configuration files are injected into the pr
 ```
 START -> llm_solver -> structured_output -> END
 ```
-
-![Bulk Processing Graph](assets/graph_bulk_processing.png)
-
+<p align="center">
+<img src="assets/graph_bulk_processing.png" alt="Bulk Processing Graph" width="200" />
+</p>
 - **Call 1 (`llm_solver`)**: Full lab context + question as a single prompt
 - **Call 2 (`structured_output`)**: Conversation history + structured output system prompt -> Pydantic model
 
@@ -58,9 +58,9 @@ A three-step Reason-Act pipeline: the LLM first reasons about the question, then
 ```
 START -> reason -> act -> structured_output -> END
 ```
-
-![Bulk ReAct Graph](assets/graph_bulk_react.png)
-
+<p align="center">
+<img src="assets/graph_bulk_react.png" alt="Bulk ReAct Graph" width="200" />
+</p>
 - **Call 1 (`reason`)**: System prompt with full lab context + question -> step-by-step reasoning
 - **Call 2 (`act`)**: Previous messages + action prompt -> direct answer
 - **Call 3 (`structured_output`)**: Full conversation history + structured output prompt -> Pydantic model
@@ -79,9 +79,9 @@ START -> planner <-> tools (self-loop while gathering data)
               | COMPLETE -> final_answer -> structured_output -> END
               | INCOMPLETE -> planner (loop back, max 3 retries)
 ```
-
-![Planner Agent Graph](assets/graph_planner_agent.png)
-
+<p align="center">
+<img src="assets/graph_planner_agent.png" alt="Planner Agent Graph" width="200" />
+</p>
 **Nodes:**
 - **`planner`**: Reasons about the question, decides which tools to call. Loops with the tool node until it has gathered enough data.
 - **`tools`**: Executes tool calls (list files, read configs, etc.) and returns results to the planner.
@@ -102,9 +102,9 @@ A lightweight agentic solver that decouples retrieval strategy from reasoning. T
 ```
 START -> strategy_classifier -> context_assembler -> [prober] -> analyst -> structured_output -> END
 ```
-
-![Guided Retrieval Agent Graph](assets/graph_guided_retrieval_agent.png)
-
+<p align="center">
+<img src="assets/graph_guided_retrieval_agent.png" alt="Guided Retrieval Agent Graph" width="200" />
+</p>
 - **`strategy_classifier`** (LLM): picks one of `topology_only`, `ip_analysis`, `device_pair`, `live_connectivity`, `service_scan`.
 - **`context_assembler`** (deterministic): reads the lab files relevant to the chosen strategy.
 - **`prober`** (deterministic, conditional): executes live network commands (traceroute, ps aux, etc.) only for `live_connectivity` / `service_scan`.
