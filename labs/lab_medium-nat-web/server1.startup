@@ -1,0 +1,17 @@
+#server web1 configuration
+
+ifconfig eth0 10.0.0.8/16 up
+route add default gw 10.0.0.10 dev eth0
+
+/etc/init.d/apache2 start
+
+
+#comments:
+#Set the IP address of network interface eth0 to 10.0.0.8
+#with a subnet mask indicated in the notation /16 (255.255.0.0).
+
+#Add a default gateway to the routing table of the client,
+#indicating that packets destined for an IP address outside the private network
+#should be routed through network interface eth0 and sent to the gateway with IP address 10.0.0.10.
+
+#Command used to start the Apache web server on most Linux distributions.

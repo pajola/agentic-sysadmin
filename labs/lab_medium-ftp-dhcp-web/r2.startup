@@ -1,0 +1,31 @@
+ifconfig eth0 10.0.0.1/24
+ifconfig eth1 10.10.10.5/24
+ifconfig eth2 192.168.0.1/24
+
+route add default gw 10.10.10.1 eth1
+
+#### Regras de Firewall ####
+
+# definição de política padrão do firewall
+# bloquear acesso ao roteador
+#IPTABLES -P INPUT DROP
+# bloquear conversa entre nos de subredes distintas 
+#IPTABLES -P FORWARD DROP
+
+# permitir acesso de R1 à máquinas na porta 22, sob protocolo TCP, da origem R1.
+#IPTABLES -A FORWARD -s 10.10.10.1 -p tcp --dport 22 -j ACCEPT
+#IPTABLES -A FORWARD -d 10.10.10.1 -p tcp --sport 22 -j ACCEPT
+
+# permitir acesso da subrede 192.168.0 à "rede_servidores" e "rede_dmz" sob protocolo TCP.
+#IPTABLES -A FORWARD -s 192.168.0.0/24 -d 10.0.0.0/24 -p tcp -j ACCEPT
+#IPTABLES -A FORWARD -d 192.168.0.0/24 -s 10.0.0.0/24 -p tcp -j ACCEPT
+#IPTABLES -A FORWARD -s 192.168.0.0/24 -d 10.10.10.0/24 -p tcp -j ACCEPT
+#IPTABLES -A FORWARD -d 192.168.0.0/24 -s 10.10.10.0/24 -p tcp -j ACCEPT
+
+# permitir acesso da subrede 192.168.0 à porta 53 da máquina DNS sob protocolo UDP.
+#IPTABLES -A FORWARD -s 192.168.0.0/24 -d 10.0.0.253 -p udp --dport 53 -j ACCEPT
+#IPTABLES -A FORWARD -d 192.168.0.0/24 -s 10.0.0.253 -p udp --sport 53 -j ACCEPT
+
+# permitir acesso da subrede 10.10.10 à porta 53 da máquina DNS sob protocolo UDP.
+#IPTABLES -A FORWARD -s 10.10.10.0/24 -d 10.0.0.253 -p udp --dport 53 -j ACCEPT
+#IPTABLES -A FORWARD -d 10.10.10.0/24 -s 10.0.0.253 -p udp --sport 53 -j ACCEPT

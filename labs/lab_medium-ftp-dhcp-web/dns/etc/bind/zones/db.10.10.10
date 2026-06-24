@@ -1,0 +1,15 @@
+$TTL    604800
+@       IN      SOA     dns.admweb.empresa.com.br. root.admweb.empresa.com.br. (
+                              3         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+; name servers
+      IN      NS      dns.admweb.empresa.com.br.
+      IN      NS      ns2.nyc3.example.com.
+
+; PTR Records
+4       IN      PTR     email.admweb.empresa.com.br.  ; 10.10.10.4
+3       IN      PTR     www.admweb.empresa.com.br.  ; 10.10.10.3
+2       IN      PTR     ftp.admweb.empresa.com.br.  ; 10.10.10.2

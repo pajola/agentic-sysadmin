@@ -1,0 +1,14 @@
+zone "admweb.empresa.com.br" {
+	type master;
+	file "/etc/bind/zones/db.admweb.empresa.com.br"; # caminho para a base da zona
+};
+
+zone "0.0.10.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.10.0.0"; # Subrede 10.0.0.0/24
+};
+
+zone "10.10.10.in-addr.arpa" {
+	type master;
+	file "/etc/bind/zones/db.10.10.10"; # Subrede 10.10.10.0/24
+};

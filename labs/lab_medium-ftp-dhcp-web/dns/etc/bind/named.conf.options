@@ -1,0 +1,21 @@
+# Lista de clientes para o qual consultas recursivas serao permitidas 
+acl "trusted" {
+	10.0.0.0/24;
+	192.168.0.0/24;
+	10.10.10.0/24;
+};
+
+# Config basica para o servidor DNS
+options {
+	directory "/var/cache/bind"; 
+
+	recursion yes; 
+	allow-recursion { trusted; }; 
+	listen-on { 10.0.0.253; }; # endereco IP da maquina DNS  
+	allow-transfer { none; }; # Desabilita zona de transferencia
+	# Encaminhadores
+	forwarders {
+	8.8.8.8;
+	8.8.4.4;
+	};
+};

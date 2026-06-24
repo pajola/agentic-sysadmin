@@ -1,0 +1,10 @@
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+ifconfig eth0 10.0.0.253/24
+
+route add default gw 10.0.0.1
+
+apt-get update -y
+echo -e "2\n126\nN\n" | apt-get install -y bind9 bind9utils bind9-doc bind9-host
+/etc/init.d/named start
+
+#/etc/init.d/bind start

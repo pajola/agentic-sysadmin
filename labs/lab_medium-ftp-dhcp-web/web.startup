@@ -1,0 +1,20 @@
+ifconfig eth0 10.10.10.3/24 up
+route add default gw 10.10.10.5
+
+#DNS
+echo "nameserver 10.0.0.253" > /etc/resolv.conf
+
+#HTTP
+# instalar servidor APACHE
+apt-get update -y
+echo N | apt-get install -y apache2 
+
+# criar usuario e senha para a pagina secreta
+#htpasswd -c /var/www/app01/.htpasswd joao
+#12345
+
+# inicializar servidor APACHE
+/etc/init.d/apache2 start
+
+# reiniciar o servidor APACHE
+#/etc/init.d/apache2 restart

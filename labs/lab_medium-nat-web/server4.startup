@@ -1,0 +1,17 @@
+#server web4 configuration
+
+ifconfig eth0 1.0.0.2/24 up
+route add default gw 1.0.0.9 dev eth0
+
+/etc/init.d/apache2 start
+
+
+#comments:
+#Set the IP address of network interface eth0 to 1.0.0.6
+#with a subnet mask indicated in the notation /24 (255.255.255.0).
+
+#Add a default gateway to the routing table of the client,
+#indicating that packets destined for an IP address outside the private network
+#should be routed through network interface eth0 and sent to the gateway with IP address 10.0.0.9.
+
+#Command used to start the Apache web server on most Linux distributions.

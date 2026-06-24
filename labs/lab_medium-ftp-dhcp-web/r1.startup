@@ -1,0 +1,42 @@
+ifconfig eth0 10.10.10.1/24
+
+route add -net 192.168.0.0 netmask 255.255.255.0 gw 10.10.10.5
+route add -net 10.0.0.0 netmask 255.255.255.0 gw 10.10.10.5
+
+### Regras de Firewall ###
+
+# definição de política padrão do firewall 
+# bloquear acesso ao roteador
+#IPTABLES -P INPUT DROP
+# bloquear conversa entre nos de subredes distintas 
+#IPTABLES -P FORWARD DROP
+
+# permitir r1 conversar com máquinas na porta 22, sob protocolo TCP.
+#IPTABLES -A INPUT -p tcp --sport 22 -j ACCEPT
+
+# mascarar ips das subredes privadas ao direcionar para o mundo externo.
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+# descartar pacotes oriundos da internet rotulados com um ip privado como destino
+#IPTABLES -A FORWARD -o eth1 -d 192.168.0.0/24 -j DROP
+#IPTABLES -A FORWARD -o eth1 -d 10.0.0.0/24 -j DROP
+#IPTABLES -A FORWARD -o eth1 -d 10.10.10.0/24 -j DROP
+
+# direcionar pacotes oriundos da internet sob protocolo TCP destinados à portas 80 e 443  
+# para a máquina 10.10.10.3 nas portas 8080 e 8443 respectivamente
+#iptables -A FORWARD -i eth1 -p tcp -m multiport --port 80,8080,443,8443 -j ACCEPT
+#iptables -t nat -A PREROUTING -d 10.10.10.1 -p tcp --dport 80 -j DNAT --to-destination 10.10.10.3:8080
+#iptables -t nat -A PREROUTING -d 10.10.10.1 -p tcp --dport 443 -j DNAT --to-destination 10.10.10.3:8443
+
+# direcionar pacotes oriundos da internet sob protocolo TCP destinados à portas 20, 21 ou 25
+# para a máquina 10.10.10.2
+#iptables -A FORWARD -i eth1 -p tcp -m multiport --port 20,21,25 -j ACCEPT
+#iptables -t nat -A PREROUTING -d 10.10.10.1 -p tcp -m multiport --destination-port 20,21 -j DNAT --to-destination 10.10.10.2:21
+#iptables -t nat -A PREROUTING -d 10.10.10.1 -p tcp --dport 25 -j DNAT --to-destination 10.10.10.2:25
+
+# permitir conversa entre a internet e a máquina PC (ip dinamico)
+#iptables -A FORWARD -i eth1 -d 192.168.0.0/24 ! -d 192.168.0.254 -j ACCEPT
+#iptables -A FORWARD -i eth1 -s 192.168.0.0/24 ! -s 192.168.0.254 -j ACCEPT
+
+
+

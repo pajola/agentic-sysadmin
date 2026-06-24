@@ -1,0 +1,19 @@
+$TTL    604800
+@       IN      SOA     dns.admweb.empresa.com.br. root.admweb.empresa.com.br. (
+                              7         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+
+squid   IN      A       10.0.0.252
+@       IN      NS      dns.admweb.empresa.com.br.
+dns     IN      A       10.0.0.253
+@       IN      MX      10 email.admweb.empresa.com.br.
+email   IN      A       10.10.10.4
+samba   IN      A       10.0.0.251
+www     IN      A       10.10.10.3
+app01   IN      A       10.10.10.3
+app02   IN      A       10.10.10.3
+ftp     IN      A       10.10.10.2

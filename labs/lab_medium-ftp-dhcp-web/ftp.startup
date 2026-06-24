@@ -1,0 +1,30 @@
+ifconfig eth0 10.10.10.2/24 up
+route add default gw 10.10.10.5
+
+#DNS
+echo "nameserver 10.0.0.253" > /etc/resolv.conf
+
+# criar usuarios
+useradd -m -s /bin/bash usuario1
+echo -e "minha-senha\nminha-senha" | passwd usuario1
+
+useradd -m -s /bin/bash usuario2
+echo -e "minha-senha\nminha-senha" | passwd usuario2
+
+useradd -m -s /bin/bash usuario3
+echo -e "minha-senha\nminha-senha" | passwd usuario3
+
+# atualizar apt e instalar pacote necessario
+apt update -y
+apt install -y proftpd
+
+# gambi para adicionar o ip do FTP no arquivo hosts para o comando seguinte (procura pelo ip no DNS) quando ha algum problema no DNS
+#echo -e "10.10.10.2 ftp" >> /etc/hosts
+
+# configuracoes de acesso anonimo e home dos usuarios
+# utilizaro cp não esta funcioanndo, ver como copiar o conteudo do arquivo conf.txt para o /etc/proftpd/proftpd.conf
+#cp conf.txt > /etc/proftpd/proftpd.conf
+
+/etc/init.d/proftpd start
+
+

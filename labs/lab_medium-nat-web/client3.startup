@@ -1,0 +1,14 @@
+#client-3 configuration
+
+ifconfig eth0 11.0.0.4/24 up
+route add default gw 11.0.0.5 dev eth0
+
+
+#comments:
+#Setting the IP address of network interface eth0 to 11.0.0.4 with a
+#subnet mask indicated in the notation /24 (255.255.255.0).
+
+#Adding a default "gateway" to the client's routing table,
+#indicating that packets destined for an IP outside of the public
+#network 1 should be routed through network interface eth0 and sent to the gateway with IP: 11.0.0.5.
+

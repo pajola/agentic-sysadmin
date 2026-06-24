@@ -1,0 +1,20 @@
+dhclient
+cat /etc/resolv.conf.dhclient-new.* > /etc/resolv.conf
+rm /etc/resolv.conf.dhclient-new.*
+
+# DNS
+echo "nameserver 10.0.0.253" > /etc/resolv.conf
+
+route add default gw 192.168.0.1
+
+# FTP
+apt update -y
+apt install -y ftp
+
+# criar arquivo para transferencia do FTP
+#echo -e "oie! arquivo teste" > home/arquivo1.txt
+
+# COMANDOS PARA TESTAR CONEXAO FTP
+#ftp 10.10.10.2
+#put home/arquivo1.txt /home/usuario1/arquivo1.txt
+#ls
